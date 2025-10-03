@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Status - Naukrivalaa Foundation</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .container {
+        max-width: 600px;
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      }
+      .loading {
+        color: #007bff;
+        font-size: 18px;
+      }
+      .success {
+        color: #28a745;
+        font-size: 24px;
+        font-weight: bold;
+      }
+      .error {
+        color: #dc3545;
+        font-size: 24px;
+        font-weight: bold;
+      }
+      .pending {
+        color: #ffc107;
+        font-size: 24px;
+        font-weight: bold;
+      }
+      .details {
+        margin: 20px 0;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        text-align: left;
+      }
+      .redirect-btn {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 20px;
+        transition: transform 0.3s ease;
+      }
+      .redirect-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      .logo {
+        max-width: 150px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎓 Naukrivalaa Foundation</h1>
+      <div id="status" class="loading">Checking payment status...</div>
+      <div id="details" class="details" style="display: none"></div>
+      <a
+        href="index.html"
+        class="redirect-btn"
+        id="homeBtn"
+        style="display: none"
+      >
+        🏠 Back to Home
+      </a>
+    </div>
+
+    <script>
+      // Get transaction ID from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const transactionId = urlParams.get("transactionId");
+
+      // Your Hostinger backend URL
+      const BACKEND_URL = "https://naukrivalaafoundation.com"; // Replace with client's domain
+
+      async function checkStatus() {
+        try {
+          if (!transactionId) {
+            document.getElementById("status").innerHTML =
+              "❌ Invalid transaction ID";
+            document.getElementById("homeBtn").style.display = "inline-block";
+            return;
+          }
+
+          console.log("Checking status for:", transactionId);
+
+          const response = await fetch(
+            `${BACKEND_URL}/api/payment/status/${transactionId}`,
+          );
+          const result = await response.json();
+
+          console.log("Payment status result:", result);
+
+          if (result.success) {
+            const state = result.data.state;
+            const statusDiv = document.getElementById("status");
+            const detailsDiv = document.getElementById("details");
+            const homeBtn = document.getElementById("homeBtn");
+
+            detailsDiv.style.display = "block";
+            homeBtn.style.display = "inline-block";
+
+            if (state === "COMPLETED") {
+              statusDiv.className = "success";
+              statusDiv.innerHTML = "✅ Payment Successful!";
+              detailsDiv.innerHTML = `
+                            <h3>🎉 Congratulations!</h3>
+                            <p><strong>✅ Payment Status:</strong> Successful</p>
+                            <p><strong>📧 Application ID:</strong> ${result.localData.applicationId}</p>
+                            <p><strong>💰 Amount Paid:</strong> ₹${result.data.amount / 100}</p>
+                            <p><strong>📅 Date:</strong> ${new Date(result.localData.createdAt).toLocaleDateString()}</p>
+                            <hr>
+                            <p>📧 <strong>Confirmation email sent!</strong> Please check your inbox.</p>
+                            <p>📋 Your scholarship application is now under review.</p>
+                            <p>📞 We will contact you soon with further updates.</p>
+                        `;
+
+              // Auto redirect after 10 seconds
+              setTimeout(() => {
+                window.location.href = "index.html";
+              }, 10000);
+            } else if (state === "PENDING") {
+              statusDiv.className = "pending";
+              statusDiv.innerHTML = "⏳ Payment Pending";
+              detailsDiv.innerHTML = `
+                            <p>🔄 Your payment is being processed.</p>
+                            <p>⏱️ This usually takes 1-2 minutes.</p>
+                            <p>🔄 This page will auto-refresh...</p>
+                        `;
+              // Check again after 3 seconds
+              setTimeout(checkStatus, 3000);
+            } else if (state === "FAILED") {
+              statusDiv.className = "error";
+              statusDiv.innerHTML = "❌ Payment Failed";
+              detailsDiv.innerHTML = `
+                            <p>💳 Payment was not successful.</p>
+                            <p>🔄 Please try applying again.</p>
+                            <p>📞 Contact us if the problem persists.</p>
+                            <p><strong>Support:</strong> info@naukrivalaa.com</p>
+                        `;
+            }
+          } else {
+            document.getElementById("status").className = "error";
+            document.getElementById("status").innerHTML =
+              "❌ Error checking payment status";
+            document.getElementById("details").innerHTML =
+              `<p>❌ ${result.message}</p>`;
+            document.getElementById("details").style.display = "block";
+            document.getElementById("homeBtn").style.display = "inline-block";
+          }
+        } catch (error) {
+          console.error("Status check error:", error);
+          document.getElementById("status").className = "error";
+          document.getElementById("status").innerHTML = "❌ Network error";
+          document.getElementById("details").innerHTML =
+            "<p>🔄 Please refresh the page to try again.</p>";
+          document.getElementById("details").style.display = "block";
+          document.getElementById("homeBtn").style.display = "inline-block";
+        }
+      }
+
+      // Start checking status
+      checkStatus();
+    </script>
+  </body>
+</html>
