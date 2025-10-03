@@ -40,17 +40,6 @@ const paymentLimiter = rateLimit({
 
 app.use(generalLimiter);
 
-app.use(express.static(".")); // Serve from root directory
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html")); // Root level
-});
-
-app.get("/payment-status", (req, res) => {
-  const { transactionId } = req.query;
-  res.redirect(`/payment-status.html?transactionId=${transactionId}`);
-});
-
 // PhonePe V2 Configuration
 const PHONEPE_CONFIG = {
   clientId: process.env.PHONEPE_CLIENT_ID,
@@ -1110,6 +1099,17 @@ app.get("/api/application/:applicationId", async (req, res) => {
       message: "Failed to fetch application",
     });
   }
+});
+
+app.use(express.static(".")); // Serve from root directory
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html")); // Root level
+});
+
+app.get("/payment-status", (req, res) => {
+  const { transactionId } = req.query;
+  res.redirect(`/payment-status.html?transactionId=${transactionId}`);
 });
 
 // Start server
