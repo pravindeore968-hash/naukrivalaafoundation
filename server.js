@@ -38,10 +38,10 @@ const paymentLimiter = rateLimit({
 
 app.use(generalLimiter);
 
-app.use(express.static("public"));
+app.use(express.static(".")); // Serve from root directory
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "index.html")); // Root level
 });
 
 app.get("/payment-status", (req, res) => {
