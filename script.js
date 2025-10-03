@@ -1,3 +1,29 @@
+// ✅ ADD THIS at the very beginning of your script.js
+console.log("🚀 Script loaded successfully");
+console.log("🔍 Backend URL:", "https://naukrivalaafoundation.onrender.com");
+
+// Test API connectivity immediately
+async function testAPI() {
+  try {
+    console.log("🧪 Testing API connectivity...");
+    const response = await fetch(
+      "https://naukrivalaafoundation.onrender.com/health",
+    );
+    const data = await response.json();
+    console.log("✅ API test successful:", data);
+  } catch (error) {
+    console.error("❌ API test failed:", error);
+    console.error("❌ Error details:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
+  }
+}
+
+// Run test immediately
+testAPI();
+
 // ====== CONFIG ======
 const BACKEND_BASE_URL = "https://naukrivalaafoundation.onrender.com"; // ✅ Fixed URL
 
