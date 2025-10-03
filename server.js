@@ -10,6 +10,8 @@ require("dotenv").config();
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 // ✅ PERFECT CORS - This will fix everything!
 app.use(
   cors({
@@ -103,7 +105,7 @@ const applicationSchema = new mongoose.Schema({
   gender: {
     type: String,
     required: true,
-    enum: ["Male / पुरुष", "Female / स्त्री", "Other / इतर"],
+    enum: ["Male", "Female", "Other"], // ✅ Simplified without Hindi characters
   },
   category: { type: String, required: true },
   school: { type: String, required: true },
@@ -292,6 +294,10 @@ function sanitizeInput(req, res, next) {
     for (let key in req.body) {
       if (typeof req.body[key] === "string") {
         req.body[key] = req.body[key].trim();
+        // Handle empty strings
+        if (req.body[key] === "") {
+          req.body[key] = undefined;
+        }
       }
     }
   }
@@ -310,22 +316,24 @@ function validatePhoneNumber(phone) {
 function validateApplicationData(data) {
   const errors = [];
 
+  // ✅ Add null/undefined checks before validation
   if (!data.name?.trim()) errors.push("Name is required");
   if (!data.email?.trim()) errors.push("Email is required");
-  if (!validateEmail(data.email)) errors.push("Invalid email format");
+  if (data.email && !validateEmail(data.email.trim()))
+    errors.push("Invalid email format");
   if (!data.phone?.trim()) errors.push("Phone number is required");
-  if (!validatePhoneNumber(data.phone))
+  if (data.phone && !validatePhoneNumber(data.phone.trim()))
     errors.push("Invalid Indian phone number");
   if (!data.dob) errors.push("Date of birth is required");
-  if (!data.gender) errors.push("Gender is required");
-  if (!data.category) errors.push("Class/Course is required");
+  if (!data.gender?.trim()) errors.push("Gender is required");
+  if (!data.category?.trim()) errors.push("Class/Course is required");
   if (!data.school?.trim()) errors.push("School/College name is required");
   if (!data.state?.trim()) errors.push("State is required");
   if (!data.district?.trim()) errors.push("District is required");
   if (!data.pincode?.trim()) errors.push("Pincode is required");
   if (!data.address?.trim()) errors.push("Address is required");
   if (!data.income_amount) errors.push("Family income is required");
-  if (!data.income_band) errors.push("Income band is required");
+  if (!data.income_band?.trim()) errors.push("Income band is required");
   if (!data.achievements?.trim()) errors.push("Achievements are required");
   if (!data.recommendation?.trim()) errors.push("Recommendation is required");
   if (!data.sop?.trim()) errors.push("Statement of purpose is required");
