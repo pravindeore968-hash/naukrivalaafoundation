@@ -1,5 +1,5 @@
 // ====== CONFIG ======
-const BACKEND_BASE_URL = "https://naukrivalaafoundation.com";
+const BACKEND_BASE_URL = "https://naukrivalaafoundation.onrender.com";
 
 // Form Elements
 const form = document.querySelector("#scholarshipForm");
