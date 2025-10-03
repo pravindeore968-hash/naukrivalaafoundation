@@ -1,5 +1,5 @@
 // ====== CONFIG ======
-const BACKEND_BASE_URL = "https://naukrivalaafoundation.onrender.com";
+const BACKEND_BASE_URL = "https://naukrivalaafoundation.onrender.com"; // ✅ Fixed URL
 
 // Form Elements
 const form = document.querySelector("#scholarshipForm");
@@ -117,7 +117,7 @@ const generateApplicationId = () => {
   return `NF${year}${month}${day}${timestamp}${randomStr}`;
 };
 
-// Generate unique merchant order ID (Browser-compatible)
+// Generate unique merchant order ID (Browser-compatible) - ✅ Fixed
 const generateMerchantOrderId = () => {
   const timestamp = Date.now();
   const randomPart = Math.random().toString(36).substring(2, 15);
@@ -125,15 +125,13 @@ const generateMerchantOrderId = () => {
   return `MO_${timestamp}_${randomPart}_${randomNumber}`;
 };
 
-// Main form submission handler
+// Main form submission handler - ✅ Fixed
 if (form) {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     showLoading();
 
     const formData = new FormData(form);
-
-    // Log form data for debugging
     console.log("📊 Form data collected:");
 
     const validationError = validateFormData(formData);
@@ -145,7 +143,7 @@ if (form) {
     }
 
     const applicationId = generateApplicationId();
-    const merchantOrderId = generateMerchantOrderId(); // Fixed: Using proper function
+    const merchantOrderId = generateMerchantOrderId(); // ✅ Fixed: Use function
 
     // Prepare application data
     const applicationData = {
@@ -170,6 +168,10 @@ if (form) {
 
     try {
       console.log("📨 Submitting application to server...");
+      console.log(
+        "🎯 Target URL:",
+        `${BACKEND_BASE_URL}/api/application/submit`,
+      );
 
       // Step 1: Submit application
       const applicationRes = await fetch(
@@ -183,14 +185,27 @@ if (form) {
 
       console.log("📥 Application response status:", applicationRes.status);
 
+      // ✅ IMPROVED VERSION - Replace the application response handling with this:
+      if (!applicationRes.ok) {
+        let errorText;
+        try {
+          const errorJson = await applicationRes.json();
+          errorText = errorJson.message || `HTTP ${applicationRes.status}`;
+        } catch {
+          errorText = await applicationRes.text();
+        }
+        console.error("❌ Server error:", errorText);
+        throw new Error(`Server error ${applicationRes.status}: ${errorText}`);
+      }
+
       const applicationResult = await applicationRes.json();
       console.log("📋 Application result:", applicationResult);
 
-      if (!applicationRes.ok || !applicationResult.success) {
-        // Handle duplicate application specifically
+      // Handle application-specific responses
+      if (!applicationResult.success) {
         if (applicationRes.status === 409) {
+          // Duplicate application
           console.log("⚠️ Duplicate application detected");
-
           const continuePayment = confirm(
             "You have already submitted an application with this email or phone number. " +
               "Do you want to continue with payment for your existing application?",
@@ -223,6 +238,8 @@ if (form) {
         phone: formData.get("phone"),
       };
 
+      console.log("💳 Initiating payment with data:", paymentData);
+
       const paymentRes = await fetch(
         `${BACKEND_BASE_URL}/api/payment/initiate`,
         {
@@ -232,13 +249,20 @@ if (form) {
         },
       );
 
-      const paymentResult = await paymentRes.json();
+      if (!paymentRes.ok) {
+        const errorText = await paymentRes.text();
+        console.error("❌ Payment error:", errorText);
+        throw new Error(`Payment error ${paymentRes.status}: ${errorText}`);
+      }
 
-      if (!paymentRes.ok || !paymentResult.success) {
+      const paymentResult = await paymentRes.json();
+      console.log("💳 Payment result:", paymentResult);
+
+      if (!paymentResult.success) {
         throw new Error(paymentResult.message || "Failed to initiate payment");
       }
 
-      // Store for tracking (localStorage is safe in browser)
+      // Store for tracking
       localStorage.setItem("applicationId", applicationId);
       localStorage.setItem("merchantOrderId", merchantOrderId);
 
@@ -249,7 +273,6 @@ if (form) {
         paymentResult.data.redirectUrl
       ) {
         const paymentUrl = paymentResult.data.redirectUrl;
-
         showMessage("Redirecting to PhonePe payment gateway...");
 
         setTimeout(() => {
@@ -260,7 +283,7 @@ if (form) {
         throw new Error("Payment URL not received from gateway");
       }
     } catch (error) {
-      console.error("❌ Payment error:", error);
+      console.error("❌ Complete error details:", error);
       showMessage(
         error.message || "Error occurred while processing your request",
         true,
