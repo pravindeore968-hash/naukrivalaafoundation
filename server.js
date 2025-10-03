@@ -5,6 +5,7 @@ const rateLimit = require("express-rate-limit");
 const validator = require("validator");
 const nodemailer = require("nodemailer");
 const axios = require("axios");
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -36,6 +37,17 @@ const paymentLimiter = rateLimit({
 });
 
 app.use(generalLimiter);
+
+app.use(express.static("public"));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.get("/payment-status", (req, res) => {
+  const { transactionId } = req.query;
+  res.redirect(`/payment-status.html?transactionId=${transactionId}`);
+});
 
 // PhonePe V2 Configuration
 const PHONEPE_CONFIG = {
