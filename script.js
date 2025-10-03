@@ -1,10 +1,6 @@
 // ====== CONFIG ======
 const BACKEND_BASE_URL = "https://naukrivalaafoundation.com";
 
-// Add this to the top of your script.js:
-let orderCounter = parseInt(localStorage.getItem("orderCounter") || "0") + 1;
-localStorage.setItem("orderCounter", orderCounter.toString());
-
 // Form Elements
 const form = document.querySelector("#scholarshipForm");
 const submitBtn = document.querySelector("#submitBtn");
@@ -27,7 +23,6 @@ const hideLoading = () => {
 };
 
 const showMessage = (message, isError = false) => {
-  // Create a better message display
   const messageDiv = document.createElement("div");
   messageDiv.style.cssText = `
     position: fixed;
@@ -111,7 +106,7 @@ const validateFormData = (formData) => {
   return null;
 };
 
-// Generate Application ID
+// Generate Application ID (Client-side compatible)
 const generateApplicationId = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -120,6 +115,14 @@ const generateApplicationId = () => {
   const timestamp = now.getTime().toString().slice(-6);
   const randomStr = Math.random().toString(36).substring(2, 5).toUpperCase();
   return `NF${year}${month}${day}${timestamp}${randomStr}`;
+};
+
+// Generate unique merchant order ID (Browser-compatible)
+const generateMerchantOrderId = () => {
+  const timestamp = Date.now();
+  const randomPart = Math.random().toString(36).substring(2, 15);
+  const randomNumber = Math.floor(Math.random() * 999999);
+  return `MO_${timestamp}_${randomPart}_${randomNumber}`;
 };
 
 // Main form submission handler
@@ -142,7 +145,7 @@ if (form) {
     }
 
     const applicationId = generateApplicationId();
-    const merchantOrderId = `MO_${Date.now()}_${orderCounter}_${Math.random().toString(36).substring(2, 15)}_${Math.floor(Math.random() * 999999)}`;
+    const merchantOrderId = generateMerchantOrderId(); // Fixed: Using proper function
 
     // Prepare application data
     const applicationData = {
@@ -183,14 +186,11 @@ if (form) {
       const applicationResult = await applicationRes.json();
       console.log("📋 Application result:", applicationResult);
 
-      // Find this section in your script.js and update the error handling:
-
       if (!applicationRes.ok || !applicationResult.success) {
         // Handle duplicate application specifically
         if (applicationRes.status === 409) {
           console.log("⚠️ Duplicate application detected");
 
-          // Ask user if they want to continue with payment
           const continuePayment = confirm(
             "You have already submitted an application with this email or phone number. " +
               "Do you want to continue with payment for your existing application?",
@@ -213,10 +213,10 @@ if (form) {
         console.log("✅ New application submitted successfully");
       }
 
-      // Step 2: Initiate payment with OAuth V2
+      // Step 2: Initiate payment
       const paymentData = {
         applicationId: applicationId,
-        merchantOrderId: merchantOrderId, // V2 uses merchantOrderId
+        merchantOrderId: merchantOrderId,
         amount: 99,
         name: formData.get("name"),
         email: formData.get("email"),
@@ -238,11 +238,11 @@ if (form) {
         throw new Error(paymentResult.message || "Failed to initiate payment");
       }
 
-      // Store for tracking
+      // Store for tracking (localStorage is safe in browser)
       localStorage.setItem("applicationId", applicationId);
       localStorage.setItem("merchantOrderId", merchantOrderId);
 
-      // Redirect to PhonePe payment page (V2 format)
+      // Redirect to PhonePe payment page
       if (
         paymentResult.success &&
         paymentResult.data &&
@@ -252,7 +252,6 @@ if (form) {
 
         showMessage("Redirecting to PhonePe payment gateway...");
 
-        // Show payment info before redirect
         setTimeout(() => {
           window.location.href = paymentUrl;
         }, 1500);
@@ -261,7 +260,7 @@ if (form) {
         throw new Error("Payment URL not received from gateway");
       }
     } catch (error) {
-      console.error("❌ OAuth V2 Payment error:", error);
+      console.error("❌ Payment error:", error);
       showMessage(
         error.message || "Error occurred while processing your request",
         true,
@@ -276,7 +275,7 @@ if (form) {
 // Handle payment redirect and status check
 window.addEventListener("load", async () => {
   const urlParams = new URLSearchParams(window.location.search);
-  const merchantOrderId = urlParams.get("transactionId"); // matches your redirect URL
+  const merchantOrderId = urlParams.get("transactionId");
 
   if (merchantOrderId) {
     showLoading();
@@ -316,17 +315,17 @@ window.addEventListener("load", async () => {
         if (form) {
           form.style.display = "none";
           const successHTML = `
-      <div style="max-width: 600px; margin: 50px auto; padding: 30px; text-align: center; background: rgba(56, 193, 114, 0.1); border: 1px solid #38c172; border-radius: 10px; color: #eef2ff;">
-        <h2 style="color: #38c172; margin-bottom: 20px;">🎉 Payment Successful!</h2>
-        ${applicationId !== "APP_ID_NOT_FOUND" ? `<p><strong>Application ID:</strong> ${applicationId}</p>` : `<p><strong>Note:</strong> Check your email for Application ID</p>`}
-        <p><strong>Payment Method:</strong> PhonePe</p>
-        <p><strong>Status:</strong> Completed ✅</p>
-        <p><strong>Amount Paid:</strong> ₹99</p>
-        <p style="margin-top: 20px;">You will receive a confirmation email with your application details shortly.</p>
-        <p>Our team will review your application and announce results on our Instagram <a href="https://instagram.com/naukrivalaa" target="_blank" style="color: #60a5fa;">@naukrivalaa</a></p>
-        <a href="/" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: #4ade80; color: #0a0f1f; text-decoration: none; border-radius: 8px; font-weight: 600;">Apply Again</a>
-      </div>
-    `;
+            <div style="max-width: 600px; margin: 50px auto; padding: 30px; text-align: center; background: rgba(56, 193, 114, 0.1); border: 1px solid #38c172; border-radius: 10px; color: #eef2ff;">
+              <h2 style="color: #38c172; margin-bottom: 20px;">🎉 Payment Successful!</h2>
+              ${applicationId !== "APP_ID_NOT_FOUND" ? `<p><strong>Application ID:</strong> ${applicationId}</p>` : `<p><strong>Note:</strong> Check your email for Application ID</p>`}
+              <p><strong>Payment Method:</strong> PhonePe</p>
+              <p><strong>Status:</strong> Completed ✅</p>
+              <p><strong>Amount Paid:</strong> ₹99</p>
+              <p style="margin-top: 20px;">You will receive a confirmation email with your application details shortly.</p>
+              <p>Our team will review your application and announce results on our Instagram <a href="https://instagram.com/naukrivalaa" target="_blank" style="color: #60a5fa;">@naukrivalaa</a></p>
+              <a href="/" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: #4ade80; color: #0a0f1f; text-decoration: none; border-radius: 8px; font-weight: 600;">Apply Again</a>
+            </div>
+          `;
           form.parentElement.innerHTML = successHTML;
         }
       } else if (data.data && data.data.state === "PENDING") {
@@ -343,7 +342,7 @@ window.addEventListener("load", async () => {
       }
     } catch (error) {
       hideLoading();
-      console.error("❌ OAuth V2 payment status check error:", error);
+      console.error("❌ Payment status check error:", error);
       showMessage(error.message || "Error checking payment status", true);
     }
   }
