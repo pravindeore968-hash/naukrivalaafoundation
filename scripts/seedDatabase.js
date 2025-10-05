@@ -48,7 +48,7 @@ const applicationSchema = new mongoose.Schema({
   gender: {
     type: String,
     required: true,
-    enum: ["Male / पुरुष", "Female / स्त्री", "Other / इतर"],
+    enum: ["Male", "Female", "Other"],
   },
   category: {
     type: String,

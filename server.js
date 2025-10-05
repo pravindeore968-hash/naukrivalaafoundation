@@ -197,28 +197,27 @@ const Application = mongoose.model("Application", applicationSchema);
 const Payment = mongoose.model("Payment", paymentSchema);
 
 // Email Configuration (HOSTINGER CUSTOM DOMAIN - PROFESSIONAL!)
+// ✅ CORRECT - Gmail SMTP Configuration
 let emailTransporter = null;
 if (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
-  // Hostinger Custom Domain Email Configuration
   emailTransporter = nodemailer.createTransport({
-    host: "smtp.hostinger.com",
-    port: 587,
-    secure: false, // Use STARTTLS
+    service: "gmail", // ✅ Use Gmail service
+    // OR use these manual settings:
+    // host: "smtp.gmail.com",
+    // port: 587,
+    // secure: false,
     auth: {
-      user: process.env.EMAIL_USER, // contact@naukrivalaafoundation.com
-      pass: process.env.EMAIL_APP_PASSWORD, // @7?XB4pU
-    },
-    tls: {
-      rejectUnauthorized: false,
+      user: process.env.EMAIL_USER, // naukrivalaafoundation@gmail.com
+      pass: process.env.EMAIL_APP_PASSWORD, // Naukrivalaa@02041996
     },
   });
 
   // Test email configuration
   emailTransporter.verify((error, success) => {
     if (error) {
-      console.log("❌ Email verification failed:", error.message);
+      console.log("❌ Gmail SMTP verification failed:", error.message);
     } else {
-      console.log("✅ Hostinger SMTP verified and ready to send emails!");
+      console.log("✅ Gmail SMTP verified and ready to send emails!");
     }
   });
 } else {
@@ -356,7 +355,7 @@ async function sendConfirmationEmail(application, orderId) {
       address: process.env.EMAIL_USER,
     },
     to: application.email,
-    cc: "contact@naukrivalaafoundation.com", // CC to foundation
+    cc: "naukrivalaafoundation@gmail.com", // CC to foundation
     subject:
       "🎉 Scholarship Application Successfully Submitted - Naukrivalaa Foundation",
     html: `
@@ -879,7 +878,7 @@ app.post(
           type: "PG_CHECKOUT",
           message: "Naukrivalaa Foundation Scholarship Application Fee",
           merchantUrls: {
-            redirectUrl: `${process.env.BACKEND_URL}/payment-status?transactionId=${merchantOrderId}`,
+            redirectUrl: `${process.env.FRONTEND_URL}/payment-status?transactionId=${merchantOrderId}`,
           },
         },
       };
