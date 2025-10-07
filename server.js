@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const validator = require("validator");
-const nodemailer = require("nodemailer");
 const axios = require("axios");
 const path = require("path");
 const { Resend } = require("resend");
