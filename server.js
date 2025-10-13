@@ -873,6 +873,7 @@ app.post(
 
       // V2 Payment payload
       const requestBody = {
+        merchantId: PHONEPE_CONFIG.merchantId, // ← ADD THIS LINE!
         merchantOrderId: merchantOrderId,
         amount: amount * 100,
         expireAfter: 1800,
