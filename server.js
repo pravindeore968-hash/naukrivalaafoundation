@@ -898,12 +898,18 @@ app.post(
         "X-MERCHANT-ID": PHONEPE_CONFIG.merchantId,
       };
 
+      console.log("🔑 Headers:", requestHeaders);
       console.log("🔍 PHONEPE REQUEST DEBUG:");
       console.log("📍 URL:", PHONEPE_URLS[PHONEPE_CONFIG.env].payment);
       console.log("📦 Body:", JSON.stringify(requestBody, null, 2));
       console.log("🔑 Headers:", {
         "Content-Type": requestHeaders["Content-Type"],
         Authorization: requestHeaders.Authorization.substring(0, 30) + "...",
+      });
+      console.log("🔍 Full Request Config:", {
+        url: PHONEPE_URLS[env].payment,
+        headers: requestHeaders,
+        body: requestBody,
       });
 
       const response = await axios.post(
