@@ -888,7 +888,7 @@ app.post(
           type: "PG_CHECKOUT",
           message: "Naukrivalaa Foundation Scholarship Application Fee",
           merchantUrls: {
-            redirectUrl: `${process.env.FRONTEND_URL}/payment-status?transactionId=${merchantOrderId}`,
+            redirectUrl: `${process.env.FRONTEND_URL}/payment-status.html?transactionId=${merchantOrderId}`,
           },
         },
       };
@@ -897,6 +897,14 @@ app.post(
         "Content-Type": "application/json",
         Authorization: `O-Bearer ${authToken}`,
       };
+
+      console.log("🔍 PHONEPE REQUEST DEBUG:");
+      console.log("📍 URL:", PHONEPE_URLS[PHONEPE_CONFIG.env].payment);
+      console.log("📦 Body:", JSON.stringify(requestBody, null, 2));
+      console.log("🔑 Headers:", {
+        "Content-Type": requestHeaders["Content-Type"],
+        Authorization: requestHeaders.Authorization.substring(0, 30) + "...",
+      });
 
       const response = await axios.post(
         PHONEPE_URLS[PHONEPE_CONFIG.env].payment,
@@ -935,6 +943,11 @@ app.post(
         );
       }
     } catch (error) {
+      console.error("❌ PHONEPE ERROR DETAILS:");
+      console.error("Status:", error.response?.status);
+      console.error("Data:", JSON.stringify(error.response?.data, null, 2));
+      console.error("Message:", error.message);
+
       let errorMessage = "Payment initiation failed";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
