@@ -27,13 +27,15 @@ const PHONEPE_CONFIG = {
 };
 
 const PHONEPE_URLS = {
-  PROD: {
-    token: "https://api.phonepe.com/apis/pg/v1/oauth/token",
-    payment: "https://api.phonepe.com/apis/pg/checkout/v2/pay",
-  },
   UAT: {
     token: "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token",
     payment: "https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay",
+    status: "https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order",
+  },
+  PROD: {
+    token: "https://api.phonepe.com/apis/identity-manager/v1/oauth/token",
+    payment: "https://api.phonepe.com/apis/pg/checkout/v2/pay",
+    status: "https://api.phonepe.com/apis/pg/checkout/v2/order",
   },
 };
 
