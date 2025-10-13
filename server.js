@@ -894,7 +894,7 @@ app.post(
 
       const requestHeaders = {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`,
+        Authorization: `O-Bearer ${authToken}`,
       };
 
       const response = await axios.post(
@@ -977,7 +977,7 @@ app.get("/api/payment/status/:merchantOrderId", async (req, res) => {
 
     const requestHeaders = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${authToken}`,
+      Authorization: `O-Bearer ${authToken}`,
     };
 
     const statusUrl = `${PHONEPE_URLS[PHONEPE_CONFIG.env].status}/${merchantOrderId}/status?details=true&errorContext=true`;
