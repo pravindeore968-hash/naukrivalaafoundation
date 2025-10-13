@@ -873,7 +873,6 @@ app.post(
 
       // V2 Payment payload
       const requestBody = {
-        merchantId: PHONEPE_CONFIG.merchantId, // ← ADD THIS LINE!
         merchantOrderId: merchantOrderId,
         amount: amount * 100,
         expireAfter: 1800,
@@ -896,6 +895,7 @@ app.post(
       const requestHeaders = {
         "Content-Type": "application/json",
         Authorization: `O-Bearer ${authToken}`,
+        "X-MERCHANT-ID": PHONEPE_CONFIG.merchantId,
       };
 
       console.log("🔍 PHONEPE REQUEST DEBUG:");
@@ -992,6 +992,7 @@ app.get("/api/payment/status/:merchantOrderId", async (req, res) => {
     const requestHeaders = {
       "Content-Type": "application/json",
       Authorization: `O-Bearer ${authToken}`,
+      "X-MERCHANT-ID": PHONEPE_CONFIG.merchantId,
     };
 
     const statusUrl = `${PHONEPE_URLS[PHONEPE_CONFIG.env].status}/${merchantOrderId}/status?details=true&errorContext=true`;
