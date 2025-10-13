@@ -215,12 +215,19 @@ let tokenCache = {
 // OAuth V2 Token Generation
 async function generateAuthToken() {
   try {
+    // Check cache first
     if (tokenCache.token && Date.now() < tokenCache.expiresAt - 60000) {
+      console.log("🔄 Using cached token");
       return tokenCache.token;
     }
 
     const tokenEndpoint = PHONEPE_URLS[PHONEPE_CONFIG.env].token;
 
+    // ✅ Create Basic Authentication Header
+    const credentials = `${PHONEPE_CONFIG.clientId}:${PHONEPE_CONFIG.clientSecret}`;
+    const basicAuth = Buffer.from(credentials).toString("base64");
+
+    // Prepare request body
     const requestBodyJson = {
       client_version: PHONEPE_CONFIG.clientVersion,
       grant_type: "client_credentials",
@@ -230,31 +237,48 @@ async function generateAuthToken() {
 
     const requestBody = new URLSearchParams(requestBodyJson).toString();
 
+    console.log("🔑 Requesting token from:", tokenEndpoint);
+
+    // Make token request with Basic Auth
     const response = await axios.post(tokenEndpoint, requestBody, {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${basicAuth}`, // ← THIS IS THE FIX!
       },
       timeout: 30000,
     });
 
+    // Validate and cache token
     if (response.data && response.data.access_token) {
       tokenCache.token = response.data.access_token;
       tokenCache.expiresAt = response.data.expires_at * 1000;
 
+      console.log("✅ Token generated successfully");
+      console.log(
+        "⏰ Expires:",
+        new Date(tokenCache.expiresAt).toLocaleString(),
+      );
+
       return response.data.access_token;
     } else {
       throw new Error(
-        "Token generation failed: " + JSON.stringify(response.data),
+        "Invalid token response: " + JSON.stringify(response.data),
       );
     }
   } catch (error) {
-    console.error("❌ OAuth token generation error:");
-    console.error("Status:", error.response?.status);
+    console.error("❌ Token generation failed:");
+    console.error("  URL:", PHONEPE_URLS[PHONEPE_CONFIG.env]?.token);
+    console.error("  Status:", error.response?.status);
+    console.error("  Data:", JSON.stringify(error.response?.data));
+    console.error("  Message:", error.message);
 
+    // Clear cache on error
     tokenCache.token = null;
     tokenCache.expiresAt = 0;
 
-    throw error;
+    throw new Error(
+      `OAuth token generation failed: ${error.response?.data?.message || error.message}`,
+    );
   }
 }
 
