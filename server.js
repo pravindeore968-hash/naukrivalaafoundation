@@ -907,7 +907,7 @@ app.post(
         Authorization: requestHeaders.Authorization.substring(0, 30) + "...",
       });
       console.log("🔍 Full Request Config:", {
-        url: PHONEPE_URLS[env].payment,
+        url: PHONEPE_URLS[PHONEPE_CONFIG.env || "PROD"].payment,
         headers: requestHeaders,
         body: requestBody,
       });
