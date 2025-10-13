@@ -895,7 +895,6 @@ app.post(
       const requestHeaders = {
         "Content-Type": "application/json",
         Authorization: `O-Bearer ${authToken}`,
-        "X-MERCHANT-ID": PHONEPE_CONFIG.merchantId,
       };
 
       console.log("🔑 Headers:", requestHeaders);
@@ -998,7 +997,6 @@ app.get("/api/payment/status/:merchantOrderId", async (req, res) => {
     const requestHeaders = {
       "Content-Type": "application/json",
       Authorization: `O-Bearer ${authToken}`,
-      "X-MERCHANT-ID": PHONEPE_CONFIG.merchantId,
     };
 
     const statusUrl = `${PHONEPE_URLS[PHONEPE_CONFIG.env].status}/${merchantOrderId}/status?details=true&errorContext=true`;
